@@ -765,7 +765,7 @@
             this.fMinusXButton.Name = "fMinusXButton";
             this.fMinusXButton.Size = new System.Drawing.Size(64, 64);
             this.fMinusXButton.TabIndex = 3;
-            this.fMinusXButton.Tag = "21 -X";
+            this.fMinusXButton.Tag = "21 ←";
             this.fMinusXButton.Text = "←";
             this.fMinusXButton.UseVisualStyleBackColor = true;
             this.fMinusXButton.Click += new System.EventHandler(this.fMinusXButton_Click);
@@ -778,7 +778,7 @@
             this.fPlusXButton.Name = "fPlusXButton";
             this.fPlusXButton.Size = new System.Drawing.Size(64, 64);
             this.fPlusXButton.TabIndex = 2;
-            this.fPlusXButton.Tag = "20 +X";
+            this.fPlusXButton.Tag = "20 →";
             this.fPlusXButton.Text = "→";
             this.fPlusXButton.UseVisualStyleBackColor = true;
             this.fPlusXButton.Click += new System.EventHandler(this.fPlusXButton_Click);
@@ -791,7 +791,7 @@
             this.fMinusYButton.Name = "fMinusYButton";
             this.fMinusYButton.Size = new System.Drawing.Size(64, 64);
             this.fMinusYButton.TabIndex = 1;
-            this.fMinusYButton.Tag = "23 -Y";
+            this.fMinusYButton.Tag = "23 ↓";
             this.fMinusYButton.Text = "↓";
             this.fMinusYButton.UseVisualStyleBackColor = true;
             this.fMinusYButton.Click += new System.EventHandler(this.fMinusYButton_Click);
@@ -804,7 +804,7 @@
             this.fPlusYButton.Name = "fPlusYButton";
             this.fPlusYButton.Size = new System.Drawing.Size(64, 64);
             this.fPlusYButton.TabIndex = 0;
-            this.fPlusYButton.Tag = "22 +Y";
+            this.fPlusYButton.Tag = "22 ↑";
             this.fPlusYButton.Text = "↑";
             this.fPlusYButton.UseVisualStyleBackColor = true;
             this.fPlusYButton.Click += new System.EventHandler(this.fPlusYButton_Click);

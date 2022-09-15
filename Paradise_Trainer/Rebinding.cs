@@ -83,7 +83,7 @@ namespace Paradise_Trainer
                     keysPressed.Add(i);
                 }
             }
-            Thread.Sleep(10); //Scan for keypress will only be done once every 10 ms to prevent excess CPU usage
+            //Thread.Sleep(10); //Scan for keypress will only be done once every 10 ms to prevent excess CPU usage
             return keysPressed; //If nothing is being pressed, an invalid address is returned to let the program know to keep waiting
         }
  

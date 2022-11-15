@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -24,12 +25,18 @@ namespace Paradise_Trainer
         Mem m = new Mem(); //Default constructor for memory class //Todo with Memory: Make a .ini as specified in documentation. Add a system to detect when module not found, and try a different pointer.
         Checkpoints ch = new Checkpoints();  //Default constructor for checkpoint class
         Rebinding rb = new Rebinding(); //Default constructor for rebinding class
+        //Base Memory Addresses
+        long playerBase; //Contains player position and angle
+        long gravityBase; //Contains gravity and speed
+        string AOBtext = "AOB Scan";
         //Button Array
         List<Button> buttonArray = new List<Button>(); //For certain functions to be made easy, all buttons within the program must be stored within an list for easy incrementation
         //Flight related variables
         float[] flyPosition = { 0, 0, 0 };
         bool[] clickedDownDirections = new bool[6]; //If a player is clicking on a button that controls flight, this will keep track of that in the order: +x,-x,+y,-y,+z,-z
         bool[] flyingDirections = new bool[6]; //Keeps track of the 6 directions of flight and which way a player wishes to go within them in the order: +x,-x,+y,-y,+z,-z
+
+        long SingleAoBScanResult = 0;
 
     //Main form code
         private void Form1_Load(object sender, EventArgs e) //What happens when the form first loads
@@ -53,7 +60,7 @@ namespace Paradise_Trainer
         {
             //Executed once when the background worker is first called
             updateCheckpointLabels();
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04CF01B0,0x8D0,0x50,0x60,0x150", "Float", "1.2"); //Reset gravity
+            m.WriteMemory((gravityBase + 0x150).ToString("X"), "Float", "1.2"); //Reset gravity
 
             while (true) //Continually executed as long as the background worker is active
             {
@@ -89,7 +96,7 @@ namespace Paradise_Trainer
         }
         private void Form1_FormClosed(object sender, FormClosedEventArgs e) //What happens when the form is closed
         {
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04CF01B0,0x8D0,0x50,0x60,0x150", "Float", "1.2");
+            m.WriteMemory((gravityBase + 0x150).ToString("X"), "Float", "1.2");
             ch.WriteToFile(); //Writes the current checkpoints to a file so they can be read in in future sessions
             rb.WriteToFile(); //Writes the current keybinds to a file so they can be read in in future sessions
         }
@@ -100,9 +107,9 @@ namespace Paradise_Trainer
             float[] cArray = new float[3];
             try
             {
-                cArray[0] = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D4"); //x
-                cArray[1] = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D0"); //y
-                cArray[2] = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D8"); //z
+                cArray[0] = m.ReadFloat((playerBase + 0x1D4).ToString("X")); //x
+                cArray[1] = m.ReadFloat((playerBase + 0x1D0).ToString("X")); //y
+                cArray[2] = m.ReadFloat((playerBase + 0x1D8).ToString("X")); //z
             }
             catch (Exception e) //Catches if the memory does not correspond to a float, for instance when the game is first opening.
             {
@@ -114,19 +121,19 @@ namespace Paradise_Trainer
         }
         private void GoToLocation(float[] desiredPositionArray) //Takes the player to a specified position via a float array
         {
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D4", "float", desiredPositionArray[0].ToString()); //Writes player's X to the given X
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D0", "float", desiredPositionArray[1].ToString()); //Y
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D8", "float", desiredPositionArray[2].ToString()); //Z
+            m.WriteMemory((playerBase + 0x1D4).ToString("X"), "float", desiredPositionArray[0].ToString()); //Writes player's X to the given X
+            m.WriteMemory((playerBase + 0x1D0).ToString("X"), "float", desiredPositionArray[1].ToString()); //Y
+            m.WriteMemory((playerBase + 0x1D8).ToString("X"), "float", desiredPositionArray[2].ToString()); //Z
         }
 
     //Flight and Speedometer
         private void flight(bool px, bool mx, bool py, bool my, bool pz, bool mz, int speed)
         {
             float angle; //Stores the player's horizontal look angle in degrees relative to the positive y-axis
-            try { angle = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04CF01B0,0x8D0,0xA0,0x80,0x1B4"); } //Attempts to get the angle from memory
+            try { angle = m.ReadFloat((playerBase + 0x1B4).ToString("X")); } //Attempts to get the angle from memory
             catch(Exception e) //Catches if the memory does not correspond to a float, for instance when the game is first opening.
             {
-                System.Diagnostics.Debug.WriteLine("Problem reading memory: ParadiseKiller-Win64-Shipping.exe+0x04E1E140,0x30,0x260,0x130,0x194");
+                System.Diagnostics.Debug.WriteLine("Problem reading memory: Angle");
                 angle = 0;
             }
             float angleShift = 0; //Shifts the starting location of the angle to match with the players desired direction relative to forward, i.e. strafing to the right will shift it 90 degrees
@@ -157,9 +164,9 @@ namespace Paradise_Trainer
                 flyPosition[0] += speed * (float)Math.Sin((Math.PI / 180) * (angle + angleShift)); //Calculates the X component of the flight vector based on the angle and shift
                 flyPosition[1] += speed * (float)Math.Cos((Math.PI / 180) * (angle + angleShift)); //Y component
             }
-            m.FreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D4", "float", flyPosition[0].ToString()); //Freezes the X value to its new location the player has flied to in this tick
-            m.FreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D0", "float", flyPosition[1].ToString()); //y
-            m.FreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D8", "float", flyPosition[2].ToString()); //z
+            m.FreezeValue((playerBase + 0x1D4).ToString("X"), "float", flyPosition[0].ToString()); //Freezes the X value to its new location the player has flied to in this tick
+            m.FreezeValue((playerBase + 0x1D0).ToString("X"), "float", flyPosition[1].ToString()); //y
+            m.FreezeValue((playerBase + 0x1D8).ToString("X"), "float", flyPosition[2].ToString()); //z
             }
         private void Speedometer()
         {
@@ -167,12 +174,12 @@ namespace Paradise_Trainer
             float yVelocity;
             try
             {
-                xVelocity = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x288,0xC8");
-                yVelocity = m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x288,0xC4");
+                xVelocity = m.ReadFloat((gravityBase + 0xC8).ToString("X"));
+                yVelocity = m.ReadFloat((gravityBase + 0xC4).ToString("X"));
             }
             catch(Exception e)//Catches if the memory does not correspond to a float, for instance when the game is first opening.
             {
-                System.Diagnostics.Debug.WriteLine("Issue reading memory: ParadiseKiller-Win64-Shipping.exe+0x03748718,0x170,0x278,0x280,0x25C");
+                System.Diagnostics.Debug.WriteLine("Issue reading memory: Speed");
                 xVelocity = 0;
                 yVelocity = 0;
             }
@@ -210,7 +217,8 @@ namespace Paradise_Trainer
             checkpointLabel6.Invoke((MethodInvoker)delegate { checkpointLabel6.Text = ch.LabelString(6); });
             checkpointLabel7.Invoke((MethodInvoker)delegate { checkpointLabel7.Text = ch.LabelString(7); });
             checkpointLabel8.Invoke((MethodInvoker)delegate { checkpointLabel8.Text = ch.LabelString(8); });
-            try { gravityLabel.Invoke((MethodInvoker)delegate { gravityLabel.Text = "Gravity: " + (m.ReadFloat("ParadiseKiller-Win64-Shipping.exe+0x04CF01B0,0x8D0,0x50,0x60,0x150")).ToString(); }); }
+            aobScanButton.Invoke((MethodInvoker)delegate { aobScanButton.Text = AOBtext; });
+            try { gravityLabel.Invoke((MethodInvoker)delegate { gravityLabel.Text = "Gravity: " + (m.ReadFloat((gravityBase + 0x150).ToString("X"))).ToString(); }); }
             catch (Exception e) { System.Diagnostics.Debug.WriteLine("Problem reading memory: ParadiseKiller - Win64 - Shipping.exe + 037450C0, 0x58, 0x278, 0x280, 0x150"); }
         }
         private void AddButtonsToList() //Run at startup, Adds all buttons in the program to an array for easy access
@@ -404,7 +412,7 @@ namespace Paradise_Trainer
                     gravity = float.Parse((gravityComboBox.Text).Substring(0, findParenth));
             }
             catch { gravity = 1.2f; } //If it is unable to parse a float, set gravity to it's default
-            m.WriteMemory("ParadiseKiller-Win64-Shipping.exe+0x04CF01B0,0x8D0,0x50,0x60,0x150", "Float", gravity.ToString());
+            m.WriteMemory((gravityBase + 0x150).ToString("X"), "Float", gravity.ToString());
         }
     //If rebind mode is toggled on/off
         private void rebind_CheckedChanged(object sender, EventArgs e) //change all buttons back to their text or to their keybinds
@@ -432,9 +440,9 @@ namespace Paradise_Trainer
                 gravityComboBox.Text = "1.2 (Default)";
                 gravityComboBox.Enabled = true;
             });
-            m.UnfreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D4"); //Attempts to unfreeze memory, only succeeds if flight is false
-            m.UnfreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D0");
-            m.UnfreezeValue("ParadiseKiller-Win64-Shipping.exe+0x04E29670,0x0,0xA0,0x130,0x1D8");
+            m.UnfreezeValue((playerBase + 0x1D4).ToString("X")); //Attempts to unfreeze memory, only succeeds if flight is false
+            m.UnfreezeValue((playerBase + 0x1D0).ToString("X"));
+            m.UnfreezeValue((playerBase + 0x1D8).ToString("X"));
         }
     //Receives a button click from the program and calls the corresponding function
         private void setButton0_Click(object sender, EventArgs e) => buttonPressed(setButton0);
@@ -509,6 +517,20 @@ namespace Paradise_Trainer
         private void resetButton6_Click(object sender, EventArgs e) => resetCheckpoint(textBox7, 6);
         private void resetButton7_Click(object sender, EventArgs e) => resetCheckpoint(textBox8, 7);
         private void resetButton8_Click(object sender, EventArgs e) => resetCheckpoint(textBox9, 8);
+
+        private void aobScanButton_Click(object sender, EventArgs e)
+        {
+            doAScan();
+        }
+        public async void doAScan()
+        {
+            AOBtext = "Scanning...";
+            IEnumerable<long> aobScanPlayer = await m.AoBScan("?? ?? ?? ?? ?? ?? ?? ?? 48 00 04 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 37 21 03 00 00 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 02 00 0C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF 07 06 42 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", true, false);
+            IEnumerable<long> aobScanGravity = await m.AoBScan("?? ?? ?? ?? ?? ?? ?? ?? 48 00 04 00 ?? ?? ?? ?? 80 3E ?? ?? ?? ?? ?? ?? 30 21 03 00 00 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 1E 01 00 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? 01 00 00 00 04 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF 01 86 D3 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", true, false);
+            playerBase = aobScanPlayer.FirstOrDefault();
+            gravityBase = aobScanGravity.FirstOrDefault();
+            AOBtext = "AOB Scan";
+        }
     }
 }
     

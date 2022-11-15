@@ -110,6 +110,7 @@
             this.yMinusQuickButton = new System.Windows.Forms.Button();
             this.zPlusQuickButton = new System.Windows.Forms.Button();
             this.zMinusQuickButton = new System.Windows.Forms.Button();
+            this.aobScanButton = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -987,6 +988,16 @@
             this.zMinusQuickButton.UseVisualStyleBackColor = true;
             this.zMinusQuickButton.Click += new System.EventHandler(this.zMinusQuickButton_Click);
             // 
+            // aobScanButton
+            // 
+            this.aobScanButton.Location = new System.Drawing.Point(19, 415);
+            this.aobScanButton.Name = "aobScanButton";
+            this.aobScanButton.Size = new System.Drawing.Size(132, 23);
+            this.aobScanButton.TabIndex = 49;
+            this.aobScanButton.Text = "AOB Scan";
+            this.aobScanButton.UseVisualStyleBackColor = true;
+            this.aobScanButton.Click += new System.EventHandler(this.aobScanButton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -995,6 +1006,7 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.aobScanButton);
             this.Controls.Add(this.gravityComboBox);
             this.Controls.Add(this.gravityLabel);
             this.Controls.Add(this.zPlusQuickButton);
@@ -1115,6 +1127,7 @@
         private System.Windows.Forms.Button resetButton3;
         private System.Windows.Forms.Button resetButton2;
         private System.Windows.Forms.Button resetButton1;
+        private System.Windows.Forms.Button aobScanButton;
     }
 }
 
